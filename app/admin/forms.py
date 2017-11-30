@@ -301,3 +301,17 @@ class RoleForm(FlaskForm):
             'class': 'btn btn-primary',
         }
     )
+
+class AdminForm(FlaskForm):
+    name = StringField(
+        label='管理员名称',
+        validators=[
+            DataRequired('请输入管理员名称')
+        ],
+        description='管理员',
+        render_kw={
+            'class': 'form-control',
+            'placeholder': '请输入管理员名称'
+        }
+    )
+
