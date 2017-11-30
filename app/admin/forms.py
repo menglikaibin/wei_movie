@@ -1,9 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, FileField, \
+    TextAreaField, SelectField, SelectMultipleField
 from wtforms.validators import DataRequired, ValidationError
-from app.models import Admin, Tag
+from app.models import Admin, Tag, Auth
 
 tags = Tag.query.all()
+auths_list = Auth.query.all()
 
 
 class LoginForm(FlaskForm):
@@ -169,6 +171,7 @@ class MovieForm(FlaskForm):
         }
     )
 
+
 class PreviewForm(FlaskForm):
     title = StringField(
         label='预告标题',
@@ -194,6 +197,7 @@ class PreviewForm(FlaskForm):
             'class': 'btn btn-primary',
         }
     )
+
 
 class PwdForm(FlaskForm):
     old_pwd = PasswordField(
@@ -224,6 +228,7 @@ class PwdForm(FlaskForm):
             'class': 'btn btn-primary',
         }
     )
+
     def validate_old_pwd(self, field):
         from flask import session
         pwd = field.data
@@ -233,6 +238,7 @@ class PwdForm(FlaskForm):
         ).first()
         if not admin.check_pwd(pwd):
             raise ValidationError('旧密码错误！')
+
 
 class AuthForm(FlaskForm):
     name = StringField(
@@ -259,6 +265,38 @@ class AuthForm(FlaskForm):
     )
     submit = SubmitField(
         '提交',
+        render_kw={
+            'class': 'btn btn-primary',
+        }
+    )
+
+
+class RoleForm(FlaskForm):
+    name = StringField(
+        label='角色名称',
+        validators=[
+            DataRequired('请输入角色名称')
+        ],
+        description='角色名称',
+        render_kw={
+            'class': 'form-control',
+            'placeholder': '请输入角色名称名称'
+        }
+    )
+    auths = SelectMultipleField(
+        label='权限列表',
+        validators=[
+            DataRequired('请选择权限列表')
+        ],
+        coerce=int,
+        choices=[(v.id, v.name) for v in auths_list],
+        description='权限列表',
+        render_kw={
+            'class': 'form-control',
+        }
+    )
+    submit = SubmitField(
+        '编辑',
         render_kw={
             'class': 'btn btn-primary',
         }
