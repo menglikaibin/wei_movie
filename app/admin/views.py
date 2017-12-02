@@ -1,7 +1,7 @@
 from . import admin
 from flask import render_template, redirect, url_for, flash, session, request
 from app.admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, PwdForm, \
-    AuthForm, RoleForm
+    AuthForm, RoleForm, AdminForm
 from app.models import Admin, Tag, Movie, Preview, User, Comment, Moviecol, Auth, Role
 from functools import wraps
 from app import db, app
@@ -516,13 +516,30 @@ def auth_edit(id=1):
     return render_template('admin/auth_edit.html', form=form, auth=auth)
 
 
-@admin.route("/admin/add")
+@admin.route("/admin/add", methods=['POST', 'GET'])
 @admin_login_req
 def admin_add():
-    return render_template("admin/admin_add.html")
+    from werkzeug.security import generate_password_hash
+    form = AdminForm()
+    if form.validate_on_submit():
+        data = form.data
+        admin = Admin(
+            name=data['name'],
+            pwd=generate_password_hash(data['pwd']),
+            role_id=data['role_id'],
+            is_super=1
+        )
+        db.session.add(admin)
+        db.session.commit()
+        flash('添加成功', 'ok')
+        return redirect(url_for('admin.admin_list', page=1))
+    return render_template("admin/admin_add.html", form=form)
 
 
-@admin.route("/admin/list")
+@admin.route("/admin/list/<int:page>", methods=['GET'])
 @admin_login_req
-def admin_list():
-    return render_template("admin/admin_list.html")
+def admin_list(page=1):
+    page_data = Admin.query.filter_by().order_by(
+        Admin.addtime.desc()
+    ).paginate(page=page, per_page=10)
+    return render_template("admin/admin_list.html", page_data=page_data)
